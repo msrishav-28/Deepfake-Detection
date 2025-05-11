@@ -1,0 +1,155 @@
+# fusion/config/fusion_config.yaml
+# Configuration for fusion approaches
+
+# Data settings
+data:
+  img_size: 224
+  faceforensics_root: "/path/to/datasets/FaceForensics"
+  celebdf_root: "/path/to/datasets/CelebDF"
+  methods:
+    - "Deepfakes"
+    - "Face2Face"
+    - "FaceSwap"
+    - "NeuralTextures"
+
+# Dataset to use
+dataset: "celebdf"  # Options: faceforensics, celebdf, combined
+
+# Mode settings
+mode: "feature_fusion"  # Options: single, ensemble, feature_fusion
+
+# Model settings (for single mode)
+model:
+  type: "vit"
+  params:
+    img_size: 224
+    patch_size: 16
+    in_channels: 3
+    num_classes: 1
+    embed_dim: 768
+    depth: 12
+    num_heads: 12
+    mlp_ratio: 4.0
+    dropout: 0.1
+    attn_dropout: 0.0
+
+# Ensemble settings (for ensemble mode)
+ensemble:
+  method: "weighted_average"  # Options: simple_voting, weighted_average, stacking
+  weights: [0.4, 0.3, 0.3]  # For weighted_average
+  models:
+    - type: "vit"
+      checkpoint: "/path/to/checkpoints/vit_best.pth"
+      params:
+        img_size: 224
+        patch_size: 16
+        in_channels: 3
+        num_classes: 1
+        embed_dim: 768
+        depth: 12
+        num_heads: 12
+        mlp_ratio: 4.0
+        dropout: 0.1
+        attn_dropout: 0.0
+    - type: "deit"
+      checkpoint: "/path/to/checkpoints/deit_best.pth"
+      params:
+        img_size: 224
+        patch_size: 16
+        in_channels: 3
+        num_classes: 1
+        embed_dim: 768
+        depth: 12
+        num_heads: 12
+        mlp_ratio: 4.0
+        dropout: 0.1
+        attn_dropout: 0.0
+        distillation: True
+    - type: "swin"
+      checkpoint: "/path/to/checkpoints/swin_best.pth"
+      params:
+        img_size: 224
+        patch_size: 4
+        in_channels: 3
+        num_classes: 1
+        embed_dim: 96
+        depths: [2, 2, 6, 2]
+        num_heads: [3, 6, 12, 24]
+        window_size: 7
+        mlp_ratio: 4.0
+        dropout: 0.1
+        attn_dropout: 0.0
+
+# Feature fusion settings (for feature_fusion mode)
+fusion:
+  method: "attention"  # Options: concat, attention
+  fusion_dim: 512
+  models:
+    - type: "vit"
+      checkpoint: "/path/to/checkpoints/vit_best.pth"
+      feature_dim: 768
+      params:
+        img_size: 224
+        patch_size: 16
+        in_channels: 3
+        num_classes: 1
+        embed_dim: 768
+        depth: 12
+        num_heads: 12
+        mlp_ratio: 4.0
+        dropout: 0.1
+        attn_dropout: 0.0
+    - type: "deit"
+      checkpoint: "/path/to/checkpoints/deit_best.pth"
+      feature_dim: 768
+      params:
+        img_size: 224
+        patch_size: 16
+        in_channels: 3
+        num_classes: 1
+        embed_dim: 768
+        depth: 12
+        num_heads: 12
+        mlp_ratio: 4.0
+        dropout: 0.1
+        attn_dropout: 0.0
+        distillation: True
+    - type: "swin"
+      checkpoint: "/path/to/checkpoints/swin_best.pth"
+      feature_dim: 768
+      params:
+        img_size: 224
+        patch_size: 4
+        in_channels: 3
+        num_classes: 1
+        embed_dim: 96
+        depths: [2, 2, 6, 2]
+        num_heads: [3, 6, 12, 24]
+        window_size: 7
+        mlp_ratio: 4.0
+        dropout: 0.1
+        attn_dropout: 0.0
+
+# Training settings
+training:
+  batch_size: 32
+  num_workers: 4
+  epochs: 50
+  optimizer:
+    type: "adam"
+    lr: 1.0e-4
+    weight_decay: 1.0e-5
+  scheduler:
+    type: "cosine"
+    warmup_epochs: 5
+    min_lr: 1.0e-6
+  early_stopping:
+    patience: 10
+    min_delta: 0.001
+  grad_clip: 1.0
+
+# Evaluation settings
+evaluation:
+  batch_size: 64
+  num_workers: 4
+  metrics: ["accuracy", "auc", "eer"]

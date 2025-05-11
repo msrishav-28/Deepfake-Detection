@@ -1,0 +1,61 @@
+# training/config/training_config.yaml
+# Training configuration
+
+# Data settings
+data:
+  img_size: 224
+  faceforensics_root: "/path/to/datasets/FaceForensics"
+  celebdf_root: "/path/to/datasets/CelebDF"
+  methods:
+    - "Deepfakes"
+    - "Face2Face"
+    - "FaceSwap"
+    - "NeuralTextures"
+
+# Dataset to use
+dataset: "celebdf"  # Options: faceforensics, celebdf, combined
+
+# Model settings
+model:
+  type: "vit"  # Options: vit, deit, swin
+  params:
+    img_size: 224
+    patch_size: 16
+    in_channels: 3
+    num_classes: 1
+    embed_dim: 768
+    depth: 12
+    num_heads: 12
+    mlp_ratio: 4.0
+    dropout: 0.1
+    attn_dropout: 0.0
+
+# Training settings
+training:
+  batch_size: 32
+  num_workers: 4
+  epochs: 50
+  optimizer:
+    type: "adam"  # Options: sgd, adam, adamw
+    lr: 1.0e-4
+    weight_decay: 1.0e-5
+    momentum: 0.9  # For SGD
+  scheduler:
+    type: "cosine"  # Options: step, multistep, cosine
+    step_size: 10  # For step scheduler
+    gamma: 0.1  # For step and multistep scheduler
+    milestones: [15, 30, 45]  # For multistep scheduler
+    warmup_epochs: 5  # For cosine scheduler
+    min_lr: 1.0e-6  # For cosine scheduler
+  early_stopping:
+    patience: 10
+    min_delta: 0.001
+  grad_clip: 1.0
+  mixed_precision: True
+  use_amp: True
+
+# Logging settings
+logging:
+  tensorboard: True
+  log_interval: 50
+  save_dir: "/path/to/logs"

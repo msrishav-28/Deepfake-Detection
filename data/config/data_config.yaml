@@ -1,0 +1,42 @@
+# data/config/data_config.yaml
+datasets:
+  faceforensics:
+    root: "/path/to/datasets/FaceForensics"
+    train_split: 0.7
+    val_split: 0.15
+    test_split: 0.15
+    methods:
+      - "Deepfakes"
+      - "Face2Face"
+      - "FaceSwap"
+      - "NeuralTextures"
+    samples_per_method: 500
+    
+  celebdf:
+    root: "/path/to/datasets/CelebDF"
+    train_split: 0.7
+    val_split: 0.15
+    test_split: 0.15
+
+preprocessing:
+  face_detection:
+    method: "mtcnn"  # Options: mtcnn, retinaface
+    min_face_size: 40
+    margin: 0.2
+  
+  normalization:
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+    size: 224
+
+augmentation:
+  train:
+    horizontal_flip: True
+    rotate: 10
+    brightness: 0.2
+    contrast: 0.2
+    saturation: 0.2
+    jpeg_quality: [70, 90]
+  
+  test:
+    enabled: False
