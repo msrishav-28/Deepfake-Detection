@@ -1,0 +1,138 @@
+# configs/model_config.yaml
+# Configuration templates for different deepfake detection models
+
+# Vision Transformer (ViT) model configuration
+vit:
+  img_size: 224
+  patch_size: 16
+  in_channels: 3
+  num_classes: 1
+  embed_dim: 768
+  depth: 12
+  num_heads: 12
+  mlp_ratio: 4.0
+  dropout: 0.1
+  attn_dropout: 0.0
+  classifier: "token"  # "token" or "gap"
+
+# Data-efficient Image Transformer (DeiT) model configuration
+deit:
+  img_size: 224
+  patch_size: 16
+  in_channels: 3
+  num_classes: 1
+  embed_dim: 768
+  depth: 12
+  num_heads: 12
+  mlp_ratio: 4.0
+  dropout: 0.1
+  attn_dropout: 0.0
+  distillation: true
+
+# Swin Transformer model configuration
+swin:
+  img_size: 224
+  patch_size: 4
+  in_channels: 3
+  num_classes: 1
+  embed_dim: 96
+  depths: [2, 2, 6, 2]
+  num_heads: [3, 6, 12, 24]
+  window_size: 7
+  mlp_ratio: 4.0
+  dropout: 0.1
+  attn_dropout: 0.0
+
+# Vision Transformer (ViT) variants
+vit_small:
+  img_size: 224
+  patch_size: 16
+  in_channels: 3
+  num_classes: 1
+  embed_dim: 384
+  depth: 6
+  num_heads: 6
+  mlp_ratio: 4.0
+  dropout: 0.1
+  attn_dropout: 0.0
+  classifier: "token"
+
+vit_large:
+  img_size: 224
+  patch_size: 16
+  in_channels: 3
+  num_classes: 1
+  embed_dim: 1024
+  depth: 24
+  num_heads: 16
+  mlp_ratio: 4.0
+  dropout: 0.1
+  attn_dropout: 0.0
+  classifier: "token"
+
+# Data-efficient Image Transformer (DeiT) variants
+deit_small:
+  img_size: 224
+  patch_size: 16
+  in_channels: 3
+  num_classes: 1
+  embed_dim: 384
+  depth: 6
+  num_heads: 6
+  mlp_ratio: 4.0
+  dropout: 0.1
+  attn_dropout: 0.0
+  distillation: true
+
+deit_large:
+  img_size: 224
+  patch_size: 16
+  in_channels: 3
+  num_classes: 1
+  embed_dim: 1024
+  depth: 24
+  num_heads: 16
+  mlp_ratio: 4.0
+  dropout: 0.1
+  attn_dropout: 0.0
+  distillation: true
+
+# Swin Transformer variants
+swin_tiny:
+  img_size: 224
+  patch_size: 4
+  in_channels: 3
+  num_classes: 1
+  embed_dim: 96
+  depths: [2, 2, 6, 2]
+  num_heads: [3, 6, 12, 24]
+  window_size: 7
+  mlp_ratio: 4.0
+  dropout: 0.1
+  attn_dropout: 0.0
+
+swin_small:
+  img_size: 224
+  patch_size: 4
+  in_channels: 3
+  num_classes: 1
+  embed_dim: 96
+  depths: [2, 2, 18, 2]
+  num_heads: [3, 6, 12, 24]
+  window_size: 7
+  mlp_ratio: 4.0
+  dropout: 0.1
+  attn_dropout: 0.0
+
+swin_large:
+  img_size: 224
+  patch_size: 4
+  in_channels: 3
+  num_classes: 1
+  embed_dim: 192
+  depths: [2, 2, 18, 2]
+  num_heads: [6, 12, 24, 48]
+  window_size: 7
+  mlp_ratio: 4.0
+  dropout: 0.1
+  attn_dropout: 0.0

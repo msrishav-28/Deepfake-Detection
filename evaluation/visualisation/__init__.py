@@ -1,6 +1,6 @@
 # evaluation/visualization/__init__.py
 from .attention_maps import visualize_attention_maps
-from .feature_visualization import visualize_features
+from .feature_visualisation import visualize_features
 from .grad_cam import visualize_grad_cam
 from .results_plots import plot_roc_curve, plot_confusion_matrix, plot_metrics
 

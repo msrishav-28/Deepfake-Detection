@@ -1,0 +1,45 @@
+# inference/config/inference_config.yaml
+# Configuration for deepfake detection inference
+
+# Global settings
+device: "cuda"  # "cuda" or "cpu"
+face_detector: true  # Whether to use face detection
+
+# Model settings
+model:
+  type: "vit"  # Options: vit, deit, swin
+  checkpoint: "/path/to/checkpoints/vit_best.pth"
+  params:
+    img_size: 224
+    patch_size: 16
+    in_channels: 3
+    num_classes: 1
+    embed_dim: 768
+    depth: 12
+    num_heads: 12
+    mlp_ratio: 4.0
+    dropout: 0.1
+    attn_dropout: 0.0
+
+# Preprocessing settings
+preprocessing:
+  face_detection:
+    method: "mtcnn"  # Options: mtcnn, retinaface
+    min_face_size: 40
+    margin: 0.2
+  
+  normalization:
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+    size: 224
+
+# Inference settings
+inference:
+  batch_size: 32
+  threshold: 0.5  # Classification threshold
+
+# Explanation settings
+explanation:
+  enabled: true  # Whether to generate explanations
+  grad_cam: true  # Whether to use Grad-CAM
+  attention_maps: true  # Whether to visualize attention maps

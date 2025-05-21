@@ -1,0 +1,120 @@
+# configs/evaluation_config.yaml
+# Configuration template for model evaluation
+
+# Experiment settings
+experiment:
+  name: "deepfake_detection_eval"  # Evaluation experiment name
+  description: "Evaluation of deepfake detection models"
+  tags: ["evaluation", "deepfake", "transformer"]
+  output_dir: "evaluation_results"  # Output directory for evaluation results
+
+# Data settings
+data:
+  img_size: 224  # Image size
+  faceforensics_root: "/path/to/datasets/FaceForensics"  # Path to FaceForensics++ dataset
+  celebdf_root: "/path/to/datasets/CelebDF"  # Path to Celeb-DF dataset
+  dfdc_root: "/path/to/datasets/DFDC"  # Path to Deepfake Detection Challenge dataset
+  methods:  # Manipulation methods to include (for FaceForensics++)
+    - "Deepfakes"
+    - "Face2Face"
+    - "FaceSwap"
+    - "NeuralTextures"
+
+# Model settings
+models:
+  - name: "vit"  # Model name
+    type: "vit"  # Model type: vit, deit, swin
+    checkpoint: "/path/to/checkpoints/vit_best.pth"  # Path to model checkpoint
+    params:  # Model parameters
+      img_size: 224
+      patch_size: 16
+      in_channels: 3
+      num_classes: 1
+      embed_dim: 768
+      depth: 12
+      num_heads: 12
+      mlp_ratio: 4.0
+      dropout: 0.1
+      attn_dropout: 0.0
+  
+  - name: "deit"  # Model name
+    type: "deit"  # Model type: vit, deit, swin
+    checkpoint: "/path/to/checkpoints/deit_best.pth"  # Path to model checkpoint
+    params:  # Model parameters
+      img_size: 224
+      patch_size: 16
+      in_channels: 3
+      num_classes: 1
+      embed_dim: 768
+      depth: 12
+      num_heads: 12
+      mlp_ratio: 4.0
+      dropout: 0.1
+      attn_dropout: 0.0
+      distillation: true
+  
+  - name: "swin"  # Model name
+    type: "swin"  # Model type: vit, deit, swin
+    checkpoint: "/path/to/checkpoints/swin_best.pth"  # Path to model checkpoint
+    params:  # Model parameters
+      img_size: 224
+      patch_size: 4
+      in_channels: 3
+      num_classes: 1
+      embed_dim: 96
+      depths: [2, 2, 6, 2]
+      num_heads: [3, 6, 12, 24]
+      window_size: 7
+      mlp_ratio: 4.0
+      dropout: 0.1
+      attn_dropout: 0.0
+
+# Ensemble settings
+ensemble:
+  enabled: true  # Whether to evaluate ensemble models
+  methods:  # Ensemble methods to evaluate
+    - name: "voting"  # Ensemble method name
+      function: "simple_voting"  # Ensemble function to use
+      
+    - name: "weighted"  # Ensemble method name
+      function: "weighted_average"  # Ensemble function to use
+      weights: [0.4, 0.3, 0.3]  # Weights for each model
+      
+    - name: "stacking"  # Ensemble method name
+      function: "stacking_ensemble"  # Ensemble function to use
+      meta_model:  # Meta-model parameters
+        type: "mlp"  # Meta-model type: mlp, logistic
+        hidden_layers: [64, 32]  # Hidden layer sizes for MLP
+
+# Evaluation settings
+evaluation:
+  batch_size: 64  # Batch size for evaluation
+  num_workers: 4  # Number of data loading workers
+  metrics: ["accuracy", "auc", "eer", "f1", "precision", "recall"]  # Evaluation metrics
+  datasets: ["faceforensics", "celebdf", "dfdc"]  # Datasets to evaluate on
+  cross_dataset: true  # Whether to perform cross-dataset evaluation
+
+# Cross-dataset evaluation settings
+cross_dataset:
+  evaluate_source: true  # Whether to evaluate on source dataset
+  evaluate_target: true  # Whether to evaluate on target dataset
+  source_dataset: "celebdf"  # Source dataset for cross-dataset evaluation
+  target_dataset: "faceforensics"  # Target dataset for cross-dataset evaluation
+
+# Visualization settings
+visualization:
+  enabled: true  # Whether to generate visualizations
+  roc_curve: true  # Whether to plot ROC curves
+  confusion_matrix: true  # Whether to plot confusion matrices
+  precision_recall_curve: true  # Whether to plot precision-recall curves
+  saliency_map: true  # Whether to generate saliency maps
+  grad_cam: true  # Whether to generate Grad-CAM visualizations
+  attention_maps: true  # Whether to visualize attention maps
+  feature_space: true  # Whether to visualize feature space using t-SNE or PCA
+  tsne:
+    enabled: true  # Whether to use t-SNE for visualization
+    perplexity: 30  # Perplexity for t-SNE
+    n_components: 2  # Number of components for t-SNE
+  pca:
+    enabled: true  # Whether to use PCA for visualization
+    n_components: 2  # Number of components for PCA

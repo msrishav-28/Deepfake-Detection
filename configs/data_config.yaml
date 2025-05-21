@@ -1,0 +1,86 @@
+# configs/data_config.yaml
+# Configuration template for datasets and preprocessing
+
+# Dataset paths
+datasets:
+  faceforensics:
+    root: "/path/to/datasets/FaceForensics"  # Path to FaceForensics++ dataset
+    train_split: 0.7  # Percentage of data for training
+    val_split: 0.15  # Percentage of data for validation
+    test_split: 0.15  # Percentage of data for testing
+    methods:  # Manipulation methods to include
+      - "Deepfakes"
+      - "Face2Face"
+      - "FaceSwap"
+      - "NeuralTextures"
+    samples_per_method: 500  # Number of samples per method
+    compression: "c40"  # Compression level: c0, c23, c40
+    
+  celebdf:
+    root: "/path/to/datasets/CelebDF"  # Path to Celeb-DF dataset
+    train_split: 0.7  # Percentage of data for training
+    val_split: 0.15  # Percentage of data for validation
+    test_split: 0.15  # Percentage of data for testing
+    
+  dfdc:
+    root: "/path/to/datasets/DFDC"  # Path to Deepfake Detection Challenge dataset
+    train_split: 0.7  # Percentage of data for training
+    val_split: 0.15  # Percentage of data for validation
+    test_split: 0.15  # Percentage of data for testing
+
+# Preprocessing settings
+preprocessing:
+  face_detection:
+    method: "mtcnn"  # Face detection method: mtcnn, retinaface
+    min_face_size: 40  # Minimum face size to detect
+    margin: 0.2  # Margin around the face
+    
+  face_alignment:
+    enable: true  # Whether to perform face alignment
+    detection_frequency: 30  # Detect face every N frames (for videos)
+    use_tracking: true  # Whether to use face tracking between detections
+    
+  frame_extraction:
+    method: "uniform"  # Frame extraction method: uniform, keyframe
+    sample_rate: 30  # Sample one frame every N frames
+    max_frames: 300  # Maximum number of frames to extract
+    min_frames: 10  # Minimum number of frames to extract
+
+  normalization:
+    mean: [0.485, 0.456, 0.406]  # RGB mean for normalization
+    std: [0.229, 0.224, 0.225]  # RGB standard deviation for normalization
+    size: 224  # Target image size
+
+# Augmentation settings
+augmentation:
+  train:
+    horizontal_flip: true  # Whether to use horizontal flip
+    rotate: 10  # Rotation angle range
+    brightness: 0.2  # Brightness adjustment range
+    contrast: 0.2  # Contrast adjustment range
+    saturation: 0.2  # Saturation adjustment range
+    hue: 0.1  # Hue adjustment range
+    jpeg_quality: [70, 90]  # JPEG quality range for simulating compression
+    blur:
+      enabled: true  # Whether to apply blur
+      probability: 0.3  # Probability of applying blur
+      kernel_range: [3, 7]  # Kernel size range for blur
+    noise:
+      enabled: true  # Whether to add noise
+      probability: 0.3  # Probability of adding noise
+      var_limit: [10.0, 50.0]  # Variance limit for noise
+    cutout:
+      enabled: true  # Whether to use cutout
+      probability: 0.3  # Probability of applying cutout
+      num_holes: 1  # Number of holes for cutout
+      max_h_size: 60  # Maximum height of cutout
+      max_w_size: 60  # Maximum width of cutout
+    motion_blur:
+      enabled: true  # Whether to apply motion blur
+      probability: 0.3  # Probability of applying motion blur
+      blur_limit: [7, 15]  # Blur limit for motion blur
+  
+  test:
+    enabled: false  # Whether to enable augmentation during testing
+    center_crop: true  # Whether to use center crop
+    ten_crop: false  # Whether to use ten crop

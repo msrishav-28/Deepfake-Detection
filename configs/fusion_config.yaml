@@ -1,0 +1,198 @@
+# configs/fusion_config.yaml
+# Configuration template for model fusion approaches
+
+# Experiment settings
+experiment:
+  name: "deepfake_detection_fusion"  # Fusion experiment name
+  description: "Training and evaluation of fusion approaches for deepfake detection"
+  tags: ["fusion", "deepfake", "transformer"]
+  output_dir: "fusion_results"  # Output directory for fusion results
+
+# Data settings
+data:
+  img_size: 224  # Image size
+  faceforensics_root: "/path/to/datasets/FaceForensics"  # Path to FaceForensics++ dataset
+  celebdf_root: "/path/to/datasets/CelebDF"  # Path to Celeb-DF dataset
+  methods:  # Manipulation methods to include (for FaceForensics++)
+    - "Deepfakes"
+    - "Face2Face"
+    - "FaceSwap"
+    - "NeuralTextures"
+
+# Dataset to use
+dataset: "celebdf"  # Options: faceforensics, celebdf, combined
+
+# Mode settings
+mode: "feature_fusion"  # Options: single, ensemble, feature_fusion
+
+# Model settings (for single mode)
+model:
+  type: "vit"  # Options: vit, deit, swin
+  params:
+    img_size: 224
+    patch_size: 16
+    in_channels: 3
+    num_classes: 1
+    embed_dim: 768
+    depth: 12
+    num_heads: 12
+    mlp_ratio: 4.0
+    dropout: 0.1
+    attn_dropout: 0.0
+
+# Ensemble settings (for ensemble mode)
+ensemble:
+  method: "weighted_average"  # Options: simple_voting, weighted_average, stacking
+  weights: [0.4, 0.3, 0.3]  # For weighted_average
+  models:
+    - type: "vit"
+      checkpoint: "/path/to/checkpoints/vit_best.pth"
+      params:
+        img_size: 224
+        patch_size: 16
+        in_channels: 3
+        num_classes: 1
+        embed_dim: 768
+        depth: 12
+        num_heads: 12
+        mlp_ratio: 4.0
+        dropout: 0.1
+        attn_dropout: 0.0
+    
+    - type: "deit"
+      checkpoint: "/path/to/checkpoints/deit_best.pth"
+      params:
+        img_size: 224
+        patch_size: 16
+        in_channels: 3
+        num_classes: 1
+        embed_dim: 768
+        depth: 12
+        num_heads: 12
+        mlp_ratio: 4.0
+        dropout: 0.1
+        attn_dropout: 0.0
+        distillation: true
+    
+    - type: "swin"
+      checkpoint: "/path/to/checkpoints/swin_best.pth"
+      params:
+        img_size: 224
+        patch_size: 4
+        in_channels: 3
+        num_classes: 1
+        embed_dim: 96
+        depths: [2, 2, 6, 2]
+        num_heads: [3, 6, 12, 24]
+        window_size: 7
+        mlp_ratio: 4.0
+        dropout: 0.1
+        attn_dropout: 0.0
+
+# Feature fusion settings (for feature_fusion mode)
+fusion:
+  method: "attention"  # Options: concat, attention, transformer, bottleneck
+  fusion_dim: 512  # Fusion dimension
+  models:
+    - type: "vit"
+      checkpoint: "/path/to/checkpoints/vit_best.pth"
+      feature_dim: 768  # Feature dimension
+      feature_layer: "cls_token"  # Layer to extract features from
+      params:
+        img_size: 224
+        patch_size: 16
+        in_channels: 3
+        num_classes: 1
+        embed_dim: 768
+        depth: 12
+        num_heads: 12
+        mlp_ratio: 4.0
+        dropout: 0.1
+        attn_dropout: 0.0
+    
+    - type: "deit"
+      checkpoint: "/path/to/checkpoints/deit_best.pth"
+      feature_dim: 768  # Feature dimension
+      feature_layer: "cls_token"  # Layer to extract features from
+      params:
+        img_size: 224
+        patch_size: 16
+        in_channels: 3
+        num_classes: 1
+        embed_dim: 768
+        depth: 12
+        num_heads: 12
+        mlp_ratio: 4.0
+        dropout: 0.1
+        attn_dropout: 0.0
+        distillation: true
+    
+    - type: "swin"
+      checkpoint: "/path/to/checkpoints/swin_best.pth"
+      feature_dim: 768  # Feature dimension
+      feature_layer: "last_stage"  # Layer to extract features from
+      params:
+        img_size: 224
+        patch_size: 4
+        in_channels: 3
+        num_classes: 1
+        embed_dim: 96
+        depths: [2, 2, 6, 2]
+        num_heads: [3, 6, 12, 24]
+        window_size: 7
+        mlp_ratio: 4.0
+        dropout: 0.1
+        attn_dropout: 0.0
+
+  # Fusion architecture parameters
+  architecture:
+    # Concatenation fusion
+    concat:
+      hidden_layers: [1024, 512, 256]  # Hidden layer sizes for MLP after concatenation
+      dropout: 0.5  # Dropout rate
+      batch_norm: true  # Whether to use batch normalization
+    
+    # Attention fusion
+    attention:
+      num_heads: 8  # Number of attention heads
+      dropout: 0.1  # Dropout rate
+      layer_norm: true  # Whether to use layer normalization
+    
+    # Transformer fusion
+    transformer:
+      num_layers: 2  # Number of transformer layers
+      num_heads: 8  # Number of attention heads
+      mlp_ratio: 4.0  # MLP ratio
+      dropout: 0.1  # Dropout rate
+      attn_dropout: 0.1  # Attention dropout rate
+    
+    # Bottleneck fusion
+    bottleneck:
+      bottleneck_dim: 256  # Bottleneck dimension
+      dropout: 0.5  # Dropout rate
+      batch_norm: true  # Whether to use batch normalization
+
+# Training settings for fusion models
+training:
+  batch_size: 32  # Batch size for training
+  num_workers: 4  # Number of data loading workers
+  epochs: 50  # Number of epochs to train
+  optimizer:
+    type: "adam"  # Options: sgd, adam, adamw
+    lr: 1.0e-4  # Learning rate
+    weight_decay: 1.0e-5  # Weight decay
+  scheduler:
+    type: "cosine"  # Options: step, multistep, cosine
+    warmup_epochs: 5  # Number of warmup epochs
+    min_lr: 1.0e-6  # Minimum learning rate
+  early_stopping:
+    patience: 10  # Number of epochs to wait for improvement
+    min_delta: 0.001  # Minimum change to qualify as improvement
+  grad_clip: 1.0  # Gradient clipping value
+  freeze_base_models: true  # Whether to freeze base models during training
+
+# Evaluation settings
+evaluation:
+  batch_size: 64  # Batch size for evaluation
+  num_workers: 4  # Number of data loading workers
+  metrics: ["accuracy", "auc", "eer"]  # Evaluation metrics

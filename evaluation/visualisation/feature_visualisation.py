@@ -1,4 +1,3 @@
-# evaluation/visualization/feature_visualization.py
 import torch
 import numpy as np
 import matplotlib.pyplot as plt

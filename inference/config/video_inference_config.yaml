@@ -1,0 +1,110 @@
+# inference/config/video_inference_config.yaml
+# Configuration for video-based deepfake detection inference
+
+# Global settings
+device: "cuda"  # "cuda" or "cpu"
+face_detector: true  # Whether to use face detection
+
+# Model settings - you can use a single model or an ensemble
+# Single model configuration
+model:
+  type: "vit"  # Options: vit, deit, swin
+  checkpoint: "/path/to/checkpoints/vit_best.pth"
+  params:
+    img_size: 224
+    patch_size: 16
+    in_channels: 3
+    num_classes: 1
+    embed_dim: 768
+    depth: 12
+    num_heads: 12
+    mlp_ratio: 4.0
+    dropout: 0.1
+    attn_dropout: 0.0
+
+# Ensemble configuration (uncomment to use)
+# ensemble:
+#   method: "weighted"  # Options: average, voting, weighted, max
+#   weights: [0.4, 0.3, 0.3]  # Weights for each model (only used with weighted method)
+#   models:
+#     - type: "vit"
+#       checkpoint: "/path/to/checkpoints/vit_best.pth"
+#       params:
+#         img_size: 224
+#         patch_size: 16
+#         in_channels: 3
+#         num_classes: 1
+#         embed_dim: 768
+#         depth: 12
+#         num_heads: 12
+#         mlp_ratio: 4.0
+#         dropout: 0.1
+#         attn_dropout: 0.0
+#     
+#     - type: "deit"
+#       checkpoint: "/path/to/checkpoints/deit_best.pth"
+#       params:
+#         img_size: 224
+#         patch_size: 16
+#         in_channels: 3
+#         num_classes: 1
+#         embed_dim: 768
+#         depth: 12
+#         num_heads: 12
+#         mlp_ratio: 4.0
+#         dropout: 0.1
+#         attn_dropout: 0.0
+#         distillation: true
+#     
+#     - type: "swin"
+#       checkpoint: "/path/to/checkpoints/swin_best.pth"
+#       params:
+#         img_size: 224
+#         patch_size: 4
+#         in_channels: 3
+#         num_classes: 1
+#         embed_dim: 96
+#         depths: [2, 2, 6, 2]
+#         num_heads: [3, 6, 12, 24]
+#         window_size: 7
+#         mlp_ratio: 4.0
+#         dropout: 0.1
+#         attn_dropout: 0.0
+
+# Preprocessing settings
+preprocessing:
+  face_detection:
+    method: "mtcnn"  # Options: mtcnn, retinaface
+    min_face_size: 40
+    margin: 0.2
+  
+  normalization:
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+    size: 224
+
+# Video processing settings
+video:
+  sample_rate: 30  # Process one frame every N frames
+  batch_size: 16  # Batch size for frame processing
+  max_frames: null  # Maximum number of frames to process (null for all frames)
+  temporal_window: 5  # Window size for temporal smoothing
+  extract_frames: false  # Whether to save extracted frames
+  frames_dir: "extracted_frames"  # Directory to save extracted frames
+  create_analysis_video: true  # Whether to create analysis visualization video
+
+# Inference settings
+inference:
+  threshold: 0.5  # Classification threshold
+  confidence_threshold: 0.7  # Minimum confidence for reliable prediction
+  
+  # Frame-level classification
+  frame_classification:
+    required_consecutive_frames: 3  # Number of consecutive frames with same prediction
+    
+  # Video-level classification
+  video_classification:
+    # Thresholds for video-level decision
+    fake_threshold: 0.4  # If fake_percent > fake_threshold, video is fake
+    real_threshold: 0.8  # If real_percent > real_threshold, video is real
+    suspicious_threshold: 0.2  # If fake_percent > suspicious_threshold, video is suspicious
