@@ -444,4 +444,5 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 
 ## Authors
 
+**M S Rishav Subhin © 2025**
 **Swarnajit Roy © 2025**
