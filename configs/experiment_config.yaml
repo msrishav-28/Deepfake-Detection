@@ -1,0 +1,107 @@
+# configs/experiment_config.yaml
+# Configuration template for experiments
+
+# Experiment settings
+experiment:
+  name: "deepfake_detection_experiment"  # Experiment name
+  description: "Comprehensive experiment for deepfake detection"
+  tags: ["deepfake", "experiment", "transformer"]
+  seed: 42  # Random seed for reproducibility
+  output_dir: "experiments/full_experiment"  # Output directory for experiment
+
+# Experiments to run
+experiments:
+  # Individual model experiments
+  - name: "vit_celebdf"
+    type: "training"
+    config: "configs/training_config.yaml"
+    overrides:
+      experiment.name: "vit_celebdf"
+      experiment.output_dir: "experiments/vit_celebdf"
+      model.type: "vit"
+      data.dataset: "celebdf"
+      
+  - name: "deit_celebdf"
+    type: "training"
+    config: "configs/training_config.yaml"
+    overrides:
+      experiment.name: "deit_celebdf"
+      experiment.output_dir: "experiments/deit_celebdf"
+      model.type: "deit"
+      data.dataset: "celebdf"
+      
+  - name: "swin_celebdf"
+    type: "training"
+    config: "configs/training_config.yaml"
+    overrides:
+      experiment.name: "swin_celebdf"
+      experiment.output_dir: "experiments/swin_celebdf"
+      model.type: "swin"
+      data.dataset: "celebdf"
+      
+  # Cross-dataset experiments
+  - name: "vit_faceforensics"
+    type: "training"
+    config: "configs/training_config.yaml"
+    overrides:
+      experiment.name: "vit_faceforensics"
+      experiment.output_dir: "experiments/vit_faceforensics"
+      model.type: "vit"
+      data.dataset: "faceforensics"
+      
+  # Fusion experiments
+  - name: "feature_fusion_attention"
+    type: "fusion"
+    config: "configs/fusion_config.yaml"
+    overrides:
+      experiment.name: "feature_fusion_attention"
+      experiment.output_dir: "experiments/fusion_attention"
+      fusion.method: "attention"
+      
+  - name: "ensemble_weighted"
+    type: "fusion"
+    config: "configs/fusion_config.yaml"
+    overrides:
+      experiment.name: "ensemble_weighted"
+      experiment.output_dir: "experiments/ensemble_weighted"
+      mode: "ensemble"
+      ensemble.method: "weighted_average"
+      
+  # Evaluation experiments
+  - name: "cross_dataset_eval"
+    type: "evaluation"
+    config: "configs/cross_evaluation_config.yaml"
+    overrides:
+      experiment.name: "cross_dataset_eval"
+      output.results_dir: "experiments/cross_evaluation"
+      
+  - name: "model_comparison"
+    type: "evaluation"
+    config: "configs/evaluation_config.yaml"
+    overrides:
+      experiment.name: "model_comparison"
+      experiment.output_dir: "experiments/model_comparison"
+
+# Execution settings
+execution:
+  parallel: false  # Whether to run experiments in parallel
+  max_parallel: 2  # Maximum number of parallel experiments
+  continue_on_error: true  # Whether to continue if one experiment fails
+  
+# Resource allocation
+resources:
+  gpu_memory: "8GB"  # GPU memory requirement per experiment
+  cpu_cores: 4  # CPU cores per experiment
+  
+# Notification settings
+notifications:
+  enabled: false  # Whether to send notifications
+  email: "your-email@example.com"  # Email for notifications
+  on_completion: true  # Notify when experiment completes
+  on_error: true  # Notify on errors
+
+# Cleanup settings
+cleanup:
+  remove_checkpoints: false  # Whether to remove intermediate checkpoints
+  keep_best_only: true  # Keep only best model checkpoints
+  compress_logs: true  # Compress log files after completion

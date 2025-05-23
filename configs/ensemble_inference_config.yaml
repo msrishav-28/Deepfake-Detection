@@ -1,0 +1,78 @@
+# configs/ensemble_inference_config.yaml
+# Configuration for ensemble deepfake detection inference
+
+# Global settings
+device: "cuda"  # "cuda" or "cpu"
+face_detector: true  # Whether to use face detection
+
+# Ensemble settings
+ensemble:
+  method: "weighted"  # Options: average, voting, weighted, max
+  weights: [0.4, 0.3, 0.3]  # Weights for each model (only used with weighted method)
+  models:
+    - type: "vit"
+      checkpoint: "/path/to/checkpoints/vit_best.pth"
+      params:
+        img_size: 224
+        patch_size: 16
+        in_channels: 3
+        num_classes: 1
+        embed_dim: 768
+        depth: 12
+        num_heads: 12
+        mlp_ratio: 4.0
+        dropout: 0.1
+        attn_dropout: 0.0
+    
+    - type: "deit"
+      checkpoint: "/path/to/checkpoints/deit_best.pth"
+      params:
+        img_size: 224
+        patch_size: 16
+        in_channels: 3
+        num_classes: 1
+        embed_dim: 768
+        depth: 12
+        num_heads: 12
+        mlp_ratio: 4.0
+        dropout: 0.1
+        attn_dropout: 0.0
+        distillation: true
+    
+    - type: "swin"
+      checkpoint: "/path/to/checkpoints/swin_best.pth"
+      params:
+        img_size: 224
+        patch_size: 4
+        in_channels: 3
+        num_classes: 1
+        embed_dim: 96
+        depths: [2, 2, 6, 2]
+        num_heads: [3, 6, 12, 24]
+        window_size: 7
+        mlp_ratio: 4.0
+        dropout: 0.1
+        attn_dropout: 0.0
+
+# Preprocessing settings
+preprocessing:
+  face_detection:
+    method: "mtcnn"  # Options: mtcnn, retinaface
+    min_face_size: 40
+    margin: 0.2
+  
+  normalization:
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+    size: 224
+
+# Inference settings
+inference:
+  batch_size: 32
+  threshold: 0.5  # Classification threshold
+
+# Explanation settings
+explanation:
+  enabled: true  # Whether to generate explanations
+  grad_cam: true  # Whether to visualize Grad-CAM
+  attention_maps: true  # Whether to visualize attention maps

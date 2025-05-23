@@ -1,0 +1,47 @@
+# configs/cross_evaluation_config.yaml
+# Configuration for cross-dataset evaluation
+
+# Data settings
+data:
+  img_size: 224
+  faceforensics_root: "/path/to/datasets/FaceForensics"
+  celebdf_root: "/path/to/datasets/CelebDF"
+  dfdc_root: "/path/to/datasets/DFDC"
+  methods:
+    - "Deepfakes"
+    - "Face2Face"
+    - "FaceSwap"
+    - "NeuralTextures"
+
+# Evaluation settings
+evaluation:
+  batch_size: 64
+  num_workers: 4
+  metrics: ["accuracy", "auc", "eer", "f1", "precision", "recall"]
+  
+# Cross-dataset evaluation
+cross_dataset:
+  source_dataset: "celebdf"
+  target_dataset: "faceforensics"
+  
+# Model checkpoint
+model:
+  type: "vit"  # Options: vit, deit, swin, fusion
+  checkpoint: "/path/to/checkpoints/model_best.pth"
+  params:
+    img_size: 224
+    patch_size: 16
+    in_channels: 3
+    num_classes: 1
+    embed_dim: 768
+    depth: 12
+    num_heads: 12
+    mlp_ratio: 4.0
+    dropout: 0.1
+    attn_dropout: 0.0
+
+# Output settings
+output:
+  save_predictions: true
+  save_visualizations: true
+  results_dir: "cross_evaluation_results"

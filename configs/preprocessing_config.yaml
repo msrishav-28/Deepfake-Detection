@@ -1,0 +1,67 @@
+# configs/preprocessing_config.yaml
+# Configuration for data preprocessing
+
+# Input/Output paths
+input:
+  faceforensics_root: "/path/to/datasets/FaceForensics"
+  celebdf_root: "/path/to/datasets/CelebDF"
+  dfdc_root: "/path/to/datasets/DFDC"
+
+output:
+  root: "/path/to/processed_data"
+  structure: "hierarchical"  # Options: flat, hierarchical
+
+# Face detection settings
+face_detection:
+  method: "mtcnn"  # Options: mtcnn, retinaface
+  device: "cuda"  # Device for face detection
+  min_face_size: 40
+  margin: 0.2
+  confidence_threshold: 0.9
+
+# Frame extraction settings (for videos)
+frame_extraction:
+  sample_rate: 30  # Extract one frame every N frames
+  max_frames: 300  # Maximum frames per video
+  min_frames: 10   # Minimum frames per video
+  method: "uniform"  # Options: uniform, keyframe, random
+
+# Face alignment settings
+face_alignment:
+  enabled: true
+  reference_points: 5  # Number of facial landmarks
+  output_size: [224, 224]  # Output image size
+
+# Quality filtering
+quality_filter:
+  enabled: true
+  min_resolution: [64, 64]  # Minimum face resolution
+  blur_threshold: 100  # Laplacian variance threshold
+  brightness_range: [0.1, 0.9]  # Acceptable brightness range
+
+# Augmentation settings
+augmentation:
+  enabled: false  # Whether to apply augmentation during preprocessing
+  methods:
+    - "horizontal_flip"
+    - "rotation"
+    - "brightness"
+    - "contrast"
+
+# Parallel processing
+parallel:
+  num_workers: 8  # Number of parallel workers
+  batch_size: 32  # Batch size for processing
+
+# Dataset splits
+splits:
+  train: 0.7
+  val: 0.15
+  test: 0.15
+  seed: 42  # Random seed for reproducible splits
+
+# Logging
+logging:
+  level: "INFO"
+  save_stats: true
+  stats_file: "preprocessing_stats.json"

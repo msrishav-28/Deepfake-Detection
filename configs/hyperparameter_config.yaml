@@ -1,0 +1,69 @@
+# configs/hyperparameter_config.yaml
+# Configuration for hyperparameter tuning
+
+# Search space definition
+search_space:
+  # Model architecture
+  model:
+    type: ["vit", "deit", "swin"]
+    embed_dim: [384, 512, 768, 1024]
+    depth: [6, 8, 12, 16]
+    num_heads: [6, 8, 12, 16]
+    mlp_ratio: [2.0, 3.0, 4.0, 5.0]
+    dropout: [0.0, 0.1, 0.2, 0.3]
+    attn_dropout: [0.0, 0.1, 0.2]
+
+  # Training parameters
+  training:
+    batch_size: [16, 32, 64, 128]
+    learning_rate: [1e-5, 5e-5, 1e-4, 5e-4, 1e-3]
+    weight_decay: [1e-6, 1e-5, 1e-4, 1e-3]
+    optimizer: ["adam", "adamw", "sgd"]
+    scheduler: ["cosine", "step", "multistep"]
+    
+  # Loss function
+  loss:
+    type: ["bce", "focal", "weighted_bce"]
+    focal_alpha: [0.25, 0.5, 0.75]
+    focal_gamma: [1.0, 2.0, 3.0]
+
+  # Augmentation
+  augmentation:
+    horizontal_flip: [true, false]
+    rotation: [0, 5, 10, 15, 20]
+    brightness: [0.0, 0.1, 0.2, 0.3]
+    contrast: [0.0, 0.1, 0.2, 0.3]
+
+# Search strategy
+search_strategy:
+  method: "bayesian"  # Options: random, grid, bayesian, hyperband
+  max_trials: 100
+  max_epochs_per_trial: 20
+  patience: 5  # Early stopping patience
+
+# Objective
+objective:
+  metric: "val_auc"  # Metric to optimize
+  direction: "maximize"  # maximize or minimize
+
+# Resource allocation
+resources:
+  gpus_per_trial: 1
+  cpus_per_trial: 4
+  memory_per_trial: "8GB"
+  max_concurrent_trials: 4
+
+# Data settings
+data:
+  dataset: "celebdf"
+  img_size: 224
+  train_split: 0.7
+  val_split: 0.15
+  test_split: 0.15
+
+# Output settings
+output:
+  experiment_name: "hyperparameter_tuning"
+  results_dir: "hyperparameter_results"
+  save_best_model: true
+  save_all_trials: false
