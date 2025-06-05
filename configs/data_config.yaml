@@ -84,3 +84,9 @@ augmentation:
     enabled: false  # Whether to enable augmentation during testing
     center_crop: true  # Whether to use center crop
     ten_crop: false  # Whether to use ten crop
+
+dataset:
+  root: "path/to/celebdf/dataset"
+  image_size: 224
+  batch_size: 32
+  num_workers: 4

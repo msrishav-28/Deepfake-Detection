@@ -30,6 +30,7 @@ class CelebDFDataset(Dataset):
             
         # Load dataset
         self.samples = self._load_dataset()
+        self._verify_dataset_structure()
     
     def _load_dataset(self):
         """Load dataset samples"""
@@ -65,20 +66,49 @@ class CelebDFDataset(Dataset):
         else:  # test
             return all_samples[train_size + val_size:]
     
+    def _verify_dataset_structure(self):
+        """Verify dataset directory structure"""
+        required_dirs = [
+            os.path.join(self.root, "extracted_faces/real"),
+            os.path.join(self.root, "extracted_faces/fake")
+        ]
+        
+        for dir_path in required_dirs:
+            if not os.path.exists(dir_path):
+                raise ValueError(f"Required directory not found: {dir_path}")
+    
     def __len__(self):
         """Dataset length"""
         return len(self.samples)
     
     def __getitem__(self, idx):
         """Get dataset item"""
-        # Get sample
-        img_path, label = self.samples[idx]
+        try:
+            img_path, label = self.samples[idx]
+            
+            # Check if file exists
+            if not os.path.exists(img_path):
+                raise FileNotFoundError(f"Image not found: {img_path}")
+                
+            # Load image
+            img = cv2.imread(img_path)
+            if img is None:
+                raise ValueError(f"Failed to load image: {img_path}")
+                
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            img = self.transform(img)
+            
+            return img, float(label)
+        except Exception as e:
+            print(f"Error loading sample {idx}: {str(e)}")
+            # Return a default or skip sample
+            return None
         
-        # Load image
-        img = cv2.imread(img_path)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        
-        # Apply transform
-        img = self.transform(img)
-        
-        return img, float(label)
+    def _balance_samples(self, real_samples, fake_samples):
+        """Balance dataset samples"""
+        min_samples = min(len(real_samples), len(fake_samples))
+        if len(real_samples) > min_samples:
+            real_samples = random.sample(real_samples, min_samples)
+        if len(fake_samples) > min_samples:
+            fake_samples = random.sample(fake_samples, min_samples)
+        return real_samples, fake_samples

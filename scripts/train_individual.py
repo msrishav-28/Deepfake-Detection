@@ -11,14 +11,15 @@ import numpy as np
 import random
 from datetime import datetime
 import json
+import wandb  # Add wandb for experiment tracking
 
-from models.efficientnet import EfficientNetB4Detector
-from models.resnet import ResNet50Detector
-from models.xception import XceptionDetector
-from data.datasets import DeepfakeDataset
+# Update imports to match project structure
+from models.model_zoo import get_model  # Replace individual model imports
+from data.datasets.celebdf import CelebDFDataset  # Update dataset import
+from data.datasets.faceforensics import FaceForensicsDataset
 from utils.metrics import compute_metrics
-from utils.logger import setup_logger
-from utils.checkpointing import save_checkpoint
+from utils.logging_utils import setup_logger  # Update logger import
+from utils.file_utils import save_checkpoint  # Update checkpointing import
 
 # Set random seeds for reproducibility
 def set_seed(seed=42):
@@ -36,21 +37,36 @@ def train_epoch(model, dataloader, criterion, optimizer, device):
     total = 0
     
     pbar = tqdm(dataloader, desc="Training")
-    for inputs, labels in pbar:
-        inputs, labels = inputs.to(device), labels.to(device)
-        
-        optimizer.zero_grad()
-        outputs = model(inputs)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
-        
-        running_loss += loss.item()
-        _, predicted = torch.max(outputs, 1)
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
-        
-        pbar.set_postfix({'loss': running_loss / (pbar.n + 1), 'acc': 100 * correct / total})
+    try:
+        for inputs, labels in pbar:
+            # Clear GPU cache if needed
+            if device == 'cuda':
+                torch.cuda.empty_cache()
+                
+            inputs, labels = inputs.to(device), labels.to(device)
+            
+            optimizer.zero_grad()
+            
+            # Add gradient scaling for mixed precision training
+            with torch.cuda.amp.autocast(enabled=True):
+                outputs = model(inputs)
+                loss = criterion(outputs, labels)
+            
+            loss.backward()
+            # Add gradient clipping
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            optimizer.step()
+            
+            running_loss += loss.item()
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+            
+            pbar.set_postfix({'loss': running_loss / (pbar.n + 1), 'acc': 100 * correct / total})
+            
+    except Exception as e:
+        print(f"Error in training: {str(e)}")
+        raise e
     
     epoch_loss = running_loss / len(dataloader)
     epoch_acc = 100 * correct / total
@@ -81,6 +97,26 @@ def validate(model, dataloader, criterion, device):
     metrics = compute_metrics(np.array(all_labels), np.array(all_preds))
     
     return val_loss, metrics
+
+class EarlyStopping:
+    def __init__(self, patience=5, min_delta=0):
+        self.patience = patience
+        self.min_delta = min_delta
+        self.counter = 0
+        self.best_loss = None
+        self.early_stop = False
+        
+    def __call__(self, val_loss):
+        if self.best_loss is None:
+            self.best_loss = val_loss
+        elif val_loss > self.best_loss - self.min_delta:
+            self.counter += 1
+            if self.counter >= self.patience:
+                return True
+        else:
+            self.best_loss = val_loss
+            self.counter = 0
+        return False
 
 def main():
     parser = argparse.ArgumentParser(description="Train individual deepfake detection models")
@@ -138,16 +174,14 @@ def main():
     ])
     
     # Create datasets and dataloaders
-    train_dataset = DeepfakeDataset(
+    train_dataset = FaceForensicsDataset(
         root_dir=args.data_dir, 
-        dataset_type=args.dataset,
         split="train",
         transform=train_transform
     )
     
-    val_dataset = DeepfakeDataset(
+    val_dataset = FaceForensicsDataset(
         root_dir=args.data_dir, 
-        dataset_type=args.dataset,
         split="val",
         transform=val_transform
     )
@@ -171,14 +205,7 @@ def main():
     logger.info(f"Training samples: {len(train_dataset)}, Validation samples: {len(val_dataset)}")
     
     # Initialize model
-    if args.model_type == "efficientnet":
-        model = EfficientNetB4Detector(num_classes=2)
-    elif args.model_type == "resnet":
-        model = ResNet50Detector(num_classes=2)
-    elif args.model_type == "xception":
-        model = XceptionDetector(num_classes=2)
-    else:
-        raise ValueError(f"Unknown model type: {args.model_type}")
+    model = get_model(args.model_type, num_classes=2)
     
     model = model.to(args.device)
     
@@ -186,6 +213,9 @@ def main():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3, verbose=True)
+    
+    # Early stopping
+    early_stopping = EarlyStopping(patience=5, min_delta=0.001)
     
     # Training loop
     best_val_acc = 0.0
@@ -204,6 +234,11 @@ def main():
         
         # Update learning rate
         scheduler.step(val_loss)
+        
+        # Early stopping
+        if early_stopping(val_loss):
+            logger.info("Early stopping triggered")
+            break
         
         # Save checkpoint
         is_best = val_metrics['accuracy'] > best_val_acc

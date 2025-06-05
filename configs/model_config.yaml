@@ -1,6 +1,17 @@
 # configs/model_config.yaml
 # Configuration templates for different deepfake detection models
 
+model:
+  name: "vit"  # or "deit" or "swin"
+  pretrained: true
+  num_classes: 2
+  image_size: 224
+  patch_size: 16
+  hidden_size: 768
+  num_layers: 12
+  num_heads: 12
+  dropout: 0.1
+
 # Vision Transformer (ViT) model configuration
 vit:
   img_size: 224

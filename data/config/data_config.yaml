@@ -1,4 +1,74 @@
 # data/config/data_config.yaml
+
+# Configuration validation schema
+validation:
+  required_fields:
+    datasets:
+      - root
+      - train_split
+      - val_split
+      - test_split
+    preprocessing:
+      face_detection:
+        - method
+        - min_face_size
+        - margin
+      normalization:
+        - mean
+        - std
+        - size
+    augmentation:
+      train:
+        - horizontal_flip
+        - rotate
+        - brightness
+        - contrast
+        - saturation
+        - jpeg_quality
+  
+  constraints:
+    splits:
+      sum: 1.0  # train + val + test must equal 1.0
+      min: 0.0
+      max: 1.0
+    face_detection:
+      method:
+        allowed: ["mtcnn", "retinaface", "dlib", "opencv"]
+      min_face_size:
+        min: 20
+        max: 200
+      margin:
+        min: 0.0
+        max: 0.5
+    normalization:
+      size:
+        allowed: [224, 256, 299, 384, 512]
+      mean:
+        length: 3
+        min: 0.0
+        max: 1.0
+      std:
+        length: 3
+        min: 0.0
+        max: 1.0
+    augmentation:
+      rotate:
+        min: 0
+        max: 180
+      brightness:
+        min: 0.0
+        max: 1.0
+      contrast:
+        min: 0.0
+        max: 1.0
+      saturation:
+        min: 0.0
+        max: 1.0
+      jpeg_quality:
+        min: 30
+        max: 100
+
+# Dataset configurations
 datasets:
   faceforensics:
     root: "/path/to/datasets/FaceForensics"
@@ -11,32 +81,140 @@ datasets:
       - "FaceSwap"
       - "NeuralTextures"
     samples_per_method: 500
+    compression:
+      levels: ["c0", "c23", "c40"]  # Raw, light, heavy compression
+      default: "c23"
     
   celebdf:
     root: "/path/to/datasets/CelebDF"
     train_split: 0.7
     val_split: 0.15
     test_split: 0.15
+    version: "v2"  # v1 or v2
+    
+  dfdc:
+    root: "/path/to/datasets/DFDC"
+    train_split: 0.7
+    val_split: 0.15
+    test_split: 0.15
+    parts: ["00", "01", "02", "03", "04"]  # Dataset parts to use
+    
+  wilddeepfake:
+    root: "/path/to/datasets/WildDeepfake"
+    train_split: 0.7
+    val_split: 0.15
+    test_split: 0.15
 
+# Preprocessing configurations
 preprocessing:
   face_detection:
-    method: "mtcnn"  # Options: mtcnn, retinaface
+    method: "mtcnn"  # Options: mtcnn, retinaface, dlib, opencv
     min_face_size: 40
     margin: 0.2
+    confidence_threshold: 0.9
+    device: "cuda"  # cuda or cpu
+    batch_size: 32
+    
+  face_alignment:
+    enabled: True
+    landmarks: 68  # 5 or 68 landmarks
+    reference_points:  # For 5-point alignment
+      left_eye: [0.35, 0.35]
+      right_eye: [0.65, 0.35]
+      nose: [0.5, 0.5]
+      left_mouth: [0.35, 0.65]
+      right_mouth: [0.65, 0.65]
   
   normalization:
-    mean: [0.485, 0.456, 0.406]
+    mean: [0.485, 0.456, 0.406]  # ImageNet stats
     std: [0.229, 0.224, 0.225]
     size: 224
+    interpolation: "bilinear"  # bilinear, bicubic, lanczos
+    
+  quality_filter:
+    enabled: True
+    min_resolution: 112
+    max_blur_score: 100.0
+    min_sharpness: 0.1
 
+# Augmentation configurations
 augmentation:
   train:
+    # Spatial transforms
     horizontal_flip: True
-    rotate: 10
+    vertical_flip: False
+    rotate: 10  # degrees
+    scale: [0.8, 1.2]
+    translate: [0.1, 0.1]  # x, y translation
+    
+    # Color transforms
     brightness: 0.2
     contrast: 0.2
     saturation: 0.2
+    hue: 0.1
+    
+    # Quality transforms
     jpeg_quality: [70, 90]
+    gaussian_blur: 
+      prob: 0.3
+      kernel_size: [3, 7]
+    gaussian_noise:
+      prob: 0.2
+      var: [0.001, 0.01]
+      
+    # Advanced transforms
+    random_erasing:
+      prob: 0.3
+      scale: [0.02, 0.33]
+      ratio: [0.3, 3.3]
+    cutout:
+      prob: 0.5
+      num_holes: 1
+      max_h_size: 40
+      max_w_size: 40
   
+  validation:
+    enabled: False
+    
   test:
     enabled: False
+    
+# Data loading configurations
+dataloader:
+  batch_size: 32
+  num_workers: 8
+  pin_memory: True
+  prefetch_factor: 2
+  persistent_workers: True
+  shuffle_train: True
+  shuffle_val: False
+  shuffle_test: False
+  drop_last: True
+  
+# Sampling strategies
+sampling:
+  strategy: "balanced"  # balanced, weighted, stratified
+  oversample_minority: False
+  undersample_majority: False
+  class_weights:
+    real: 1.0
+    fake: 1.0
+  frame_sampling:
+    method: "uniform"  # uniform, random, keyframe
+    frames_per_video: 16
+    temporal_stride: 1
+    
+# Cache configurations
+cache:
+  enabled: True
+  cache_dir: "./cache/preprocessed"
+  max_cache_size_gb: 50
+  clear_on_start: False
+  compression: "lz4"  # none, lz4, gzip
+  
+# Logging configurations
+logging:
+  dataset_stats: True
+  sample_images: True
+  num_samples_to_log: 10
+  log_frequency: 100
