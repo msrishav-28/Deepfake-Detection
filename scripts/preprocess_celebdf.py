@@ -19,20 +19,23 @@ def main():
     
     # Setup face detector
     detector = setup_face_detector(device=args.device)
-    
-    # Process real videos
-    real_dir = os.path.join(args.input, "Celeb-real")
-    real_output_dir = os.path.join(args.output, "real")
-    os.makedirs(real_output_dir, exist_ok=True)
-    
-    print("Processing real videos...")
-    process_videos(real_dir, real_output_dir, detector, args)
-    
+
+    # Process real videos from both Celeb-real and YouTube-real
+    real_dirs = ["Celeb-real", "YouTube-real"]  # Add YouTube-real
+    for real_dir in real_dirs:
+        real_dir_path = os.path.join(args.input, real_dir)
+        if os.path.exists(real_dir_path):
+            real_output_dir = os.path.join(args.output, "real")
+            os.makedirs(real_output_dir, exist_ok=True)
+            
+            print(f"Processing {real_dir} videos...")
+            process_videos(real_dir_path, real_output_dir, detector, args)
+
     # Process fake videos
     fake_dir = os.path.join(args.input, "Celeb-synthesis")
     fake_output_dir = os.path.join(args.output, "fake")
     os.makedirs(fake_output_dir, exist_ok=True)
-    
+
     print("Processing fake videos...")
     process_videos(fake_dir, fake_output_dir, detector, args)
 
