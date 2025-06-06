@@ -4,11 +4,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
 import numpy as np
+
+from .blocks import SwinTransformerBlock, BasicLayer, PatchMerging
+
 from einops import rearrange
 from ..base_model import BaseModel
-from .blocks import SwinTransformerBlock, BasicLayer, PatchMerging  # Fixed import
-
-# Note: The rest of the file remains the same, just add PatchMerging to the import from .blocks
 
 class SwinTransformer(BaseModel):
     """Swin Transformer model"""

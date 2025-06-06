@@ -83,26 +83,38 @@ class CelebDFDataset(Dataset):
     
     def __getitem__(self, idx):
         """Get dataset item"""
-        try:
-            img_path, label = self.samples[idx]
-            
-            # Check if file exists
-            if not os.path.exists(img_path):
-                raise FileNotFoundError(f"Image not found: {img_path}")
+        max_retries = 3
+        for retry in range(max_retries):
+            try:
+                img_path, label = self.samples[idx]
                 
-            # Load image
-            img = cv2.imread(img_path)
-            if img is None:
-                raise ValueError(f"Failed to load image: {img_path}")
+                # Check if file exists
+                if not os.path.exists(img_path):
+                    # Try another random sample
+                    idx = np.random.randint(0, len(self.samples))
+                    continue
+                    
+                # Load image
+                img = cv2.imread(img_path)
+                if img is None:
+                    idx = np.random.randint(0, len(self.samples))
+                    continue
+                    
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                 
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            img = self.transform(img)
-            
-            return img, float(label)
-        except Exception as e:
-            print(f"Error loading sample {idx}: {str(e)}")
-            # Return a default or skip sample
-            return None
+                # Apply transforms
+                if self.transform is not None:
+                    augmented = self.transform(image=img)
+                    img = augmented['image']
+                
+                return img, float(label)
+            except Exception as e:
+                if retry == max_retries - 1:
+                    # Return a default black image as last resort
+                    print(f"Error loading sample {idx}: {str(e)}")
+                    img = torch.zeros(3, self.img_size, self.img_size)
+                    return img, float(0)
+                idx = np.random.randint(0, len(self.samples))
         
     def _balance_samples(self, real_samples, fake_samples):
         """Balance dataset samples"""

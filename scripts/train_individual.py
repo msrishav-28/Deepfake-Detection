@@ -223,7 +223,25 @@ def main():
     logger.info(f"Training samples: {len(train_dataset)}, Validation samples: {len(val_dataset)}")
     
     # Initialize model
-    model = create_model(args.model_type, num_classes=1)
+    model_params = {
+        'img_size': 224,
+        'patch_size': 16 if args.model_type != 'swin' else 4,
+        'in_channels': 3,
+        'num_classes': 1,
+        'embed_dim': 768 if args.model_type != 'swin' else 96,
+        'depth': 12 if args.model_type != 'swin' else [2, 2, 6, 2],
+        'num_heads': 12 if args.model_type != 'swin' else [3, 6, 12, 24],
+        'mlp_ratio': 4.0,
+        'dropout': 0.1,
+        'attn_dropout': 0.0
+    }
+
+    if args.model_type == 'swin':
+        model_params['depths'] = [2, 2, 6, 2]
+        model_params['num_heads'] = [3, 6, 12, 24]
+        model_params['window_size'] = 7
+
+    model = create_model(args.model_type, **model_params)
     model = model.to(args.device)
     
     # Loss function and optimizer

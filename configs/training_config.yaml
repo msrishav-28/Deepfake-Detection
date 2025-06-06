@@ -12,8 +12,7 @@ experiment:
 # Data settings
 data:
   img_size: 224  # Image size
-  faceforensics_root: "/path/to/datasets/FaceForensics"  # Path to FaceForensics++ dataset
-  celebdf_root: "/path/to/datasets/CelebDF"  # Path to Celeb-DF dataset
+  celebdf_root: "data/raw_datasets/celebdf/Celeb-DF-v2"  # Update this path
   methods:  # Manipulation methods to include (for FaceForensics++)
     - "Deepfakes"
     - "Face2Face"
@@ -27,7 +26,6 @@ data:
 # Model settings
 model:
   type: "vit"  # Model type: vit, deit, swin
-  ckpt_path: null  # Path to checkpoint for fine-tuning (null for training from scratch)
   params:  # Model parameters
     img_size: 224
     patch_size: 16
@@ -40,11 +38,11 @@ model:
     dropout: 0.1
     attn_dropout: 0.0
 
-# Training settings
+# Training settings - Optimized for RTX 3050 (6GB VRAM)
 training:
-  batch_size: 32  # Batch size for training
-  num_workers: 4  # Number of data loading workers
-  epochs: 50  # Number of training epochs
+  batch_size: 8  # Small batch size for 6GB VRAM
+  num_workers: 2  # Reduced for 16GB RAM
+  epochs: 30  # Number of training epochs
   optimizer:
     type: "adam"  # Optimizer type: sgd, adam, adamw
     lr: 1.0e-4  # Learning rate
@@ -54,20 +52,11 @@ training:
     beta2: 0.999  # Beta2 (for Adam/AdamW)
   scheduler:
     type: "cosine"  # Scheduler type: step, multistep, cosine
-    step_size: 10  # Step size (for step scheduler)
-    gamma: 0.1  # Gamma (for step and multistep scheduler)
-    milestones: [15, 30, 45]  # Milestones (for multistep scheduler)
-    warmup_epochs: 5  # Warmup epochs (for cosine scheduler)
+    warmup_epochs: 3  # Warmup epochs (for cosine scheduler)
     min_lr: 1.0e-6  # Minimum learning rate (for cosine scheduler)
   early_stopping:
-    patience: 10  # Number of epochs to wait before early stopping
+    patience: 5  # Number of epochs to wait before early stopping
     min_delta: 0.001  # Minimum change in monitored value to qualify as improvement
-    monitor: "val_loss"  # Metric to monitor for early stopping
-  loss:
-    type: "bce"  # Loss function type: bce, focal, contrastive, triplet
-    focal_alpha: 0.25  # Alpha for focal loss
-    focal_gamma: 2.0  # Gamma for focal loss
-    margin: 1.0  # Margin for contrastive and triplet loss
   grad_clip: 1.0  # Gradient clipping value (null for no clipping)
   mixed_precision: true  # Whether to use mixed precision training
   use_amp: true  # Whether to use PyTorch's Automatic Mixed Precision (AMP)

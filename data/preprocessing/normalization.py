@@ -3,6 +3,8 @@ import cv2
 import numpy as np
 import torch
 from torchvision import transforms
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
 
 def normalize_face(face_img, target_size=224):
     """
@@ -43,28 +45,26 @@ def normalize_face(face_img, target_size=224):
 
 def get_train_transforms(img_size=224):
     """Get training data transforms with augmentation"""
-    return transforms.Compose([
-        transforms.ToPILImage(),
-        transforms.Resize((img_size, img_size)),
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomRotation(10),
-        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
-        transforms.ToTensor(),
-        transforms.Normalize(
+    return A.Compose([
+        A.Resize(img_size, img_size),
+        A.HorizontalFlip(p=0.5),
+        A.RandomRotation(limit=10),
+        A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1, p=0.5),
+        A.Normalize(
             mean=[0.485, 0.456, 0.406],
             std=[0.229, 0.224, 0.225]
-        )
+        ),
+        ToTensorV2()
     ])
 
 
 def get_test_transforms(img_size=224):
     """Get test data transforms without augmentation"""
-    return transforms.Compose([
-        transforms.ToPILImage(),
-        transforms.Resize((img_size, img_size)),
-        transforms.ToTensor(),
-        transforms.Normalize(
+    return A.Compose([
+        A.Resize(img_size, img_size),
+        A.Normalize(
             mean=[0.485, 0.456, 0.406],
             std=[0.229, 0.224, 0.225]
-        )
+        ),
+        ToTensorV2()
     ])
