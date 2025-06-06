@@ -19,6 +19,7 @@ albumentations>=1.1.0
 
 # Face detection
 facenet-pytorch>=2.5.0
+mtcnn>=0.1.0
 
 # API and deployment
 fastapi>=0.100.0
