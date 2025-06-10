@@ -4,8 +4,10 @@ import glob
 import random
 import numpy as np
 import cv2
+import torch
 from torch.utils.data import Dataset
 from ..preprocessing.normalization import get_train_transforms, get_test_transforms
+from sklearn.model_selection import train_test_split
 
 class CelebDFDataset(Dataset):
     """Celeb-DF dataset"""
@@ -33,44 +35,72 @@ class CelebDFDataset(Dataset):
         self._verify_dataset_structure()
     
     def _load_dataset(self):
-        """Load dataset samples"""
-        samples = []
-        
-        # Real samples
-        real_dir = os.path.join(self.root, "extracted_faces/real")
+        """Load dataset samples with stratified splitting"""
+        # Real samples - FIXED PATH
+        real_dir = os.path.join(self.root, "real")  # Changed from "extracted_faces/real"
         real_samples = glob.glob(os.path.join(real_dir, "**/*.png"), recursive=True)
         real_samples = [(sample, 0) for sample in real_samples]  # 0 = real
         
-        # Fake samples
-        fake_dir = os.path.join(self.root, "extracted_faces/fake")
+        # Fake samples - FIXED PATH
+        fake_dir = os.path.join(self.root, "fake")  # Changed from "extracted_faces/fake"
         fake_samples = glob.glob(os.path.join(fake_dir, "**/*.png"), recursive=True)
         fake_samples = [(sample, 1) for sample in fake_samples]  # 1 = fake
             
-        # Combine samples
+        # Combine all samples
         all_samples = real_samples + fake_samples
         
-        # Split dataset
-        random.seed(42)
-        random.shuffle(all_samples)
+        # Separate paths and labels for stratified splitting
+        paths = [sample[0] for sample in all_samples]
+        labels = [sample[1] for sample in all_samples]
         
-        # Calculate split sizes
-        total_size = len(all_samples)
-        train_size = int(0.7 * total_size)
-        val_size = int(0.15 * total_size)
+        print(f"Total samples: {len(all_samples)}")
+        print(f"Real samples: {len(real_samples)}")
+        print(f"Fake samples: {len(fake_samples)}")
         
-        # Split samples
+        # STRATIFIED SPLITTING - This fixes the main issue!
+        if len(all_samples) == 0:
+            return []
+            
+        # Split into train/temp, then temp into val/test
+        train_paths, temp_paths, train_labels, temp_labels = train_test_split(
+            paths, labels, 
+            test_size=0.3,  # 30% for val+test
+            stratify=labels,  # This ensures balanced splits!
+            random_state=42
+        )
+        
+        val_paths, test_paths, val_labels, test_labels = train_test_split(
+            temp_paths, temp_labels,
+            test_size=0.5,  # Split the 30% equally: 15% val, 15% test
+            stratify=temp_labels,
+            random_state=42
+        )
+        
+        # Return appropriate split
         if self.split == 'train':
-            return all_samples[:train_size]
+            samples = list(zip(train_paths, train_labels))
+            print(f"Train set: {len(samples)} samples")
+            print(f"  - Real: {train_labels.count(0)}")
+            print(f"  - Fake: {train_labels.count(1)}")
+            return samples
         elif self.split == 'val':
-            return all_samples[train_size:train_size + val_size]
+            samples = list(zip(val_paths, val_labels))
+            print(f"Validation set: {len(samples)} samples")
+            print(f"  - Real: {val_labels.count(0)}")
+            print(f"  - Fake: {val_labels.count(1)}")
+            return samples
         else:  # test
-            return all_samples[train_size + val_size:]
+            samples = list(zip(test_paths, test_labels))
+            print(f"Test set: {len(samples)} samples")
+            print(f"  - Real: {test_labels.count(0)}")
+            print(f"  - Fake: {test_labels.count(1)}")
+            return samples
     
     def _verify_dataset_structure(self):
         """Verify dataset directory structure"""
         required_dirs = [
-            os.path.join(self.root, "extracted_faces/real"),
-            os.path.join(self.root, "extracted_faces/fake")
+            os.path.join(self.root, "real"),   # FIXED - removed "extracted_faces/"
+            os.path.join(self.root, "fake")    # FIXED - removed "extracted_faces/"
         ]
         
         for dir_path in required_dirs:

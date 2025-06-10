@@ -54,6 +54,10 @@ def train_epoch(model, dataloader, criterion, optimizer, device, scaler=None):
         if scaler is not None:
             with torch.cuda.amp.autocast():
                 outputs = model(inputs)
+                # Handle tuple output from DeiT (and other models that return tuples)
+                if isinstance(outputs, tuple):
+                    outputs = outputs[0]  # Take the main classification output
+
                 if outputs.dim() == 1:
                     outputs = outputs.unsqueeze(1)
                 loss = criterion(outputs, labels.float().unsqueeze(1))
@@ -64,6 +68,10 @@ def train_epoch(model, dataloader, criterion, optimizer, device, scaler=None):
             scaler.update()
         else:
             outputs = model(inputs)
+            # Handle tuple output from DeiT (and other models that return tuples)
+            if isinstance(outputs, tuple):
+                outputs = outputs[0]  # Take the main classification output
+
             if outputs.dim() == 1:
                 outputs = outputs.unsqueeze(1)
             loss = criterion(outputs, labels.float().unsqueeze(1))
@@ -247,7 +255,7 @@ def main():
     # Loss function and optimizer
     criterion = nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3, verbose=True)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3)  # Removed verbose=True
     
     # Initialize AMP scaler if requested
     scaler = torch.cuda.amp.GradScaler() if args.use_amp and args.device == 'cuda' else None
